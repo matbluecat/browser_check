@@ -1,6 +1,7 @@
 <?php
 /**
  * モバイル向けブラウザチェック
+ * USER AGENTから機種情報とかOSのバージョンをとってくる
  */
 
 class BrowserCheck
@@ -27,7 +28,6 @@ class BrowserCheck
 				}
 			}
 			if($class_name!==false){
-				var_dump($class_name);
 				return new $class_name($server);
 			}
 		}
@@ -78,7 +78,6 @@ class BrowserInfoAndroid extends BrowserInfoBase
 			$_ret_val = trim(end($_tmp));
 		}
 		$this->os = 'Android';
-		var_dump($_tmp);
 	}
 }
 
@@ -90,6 +89,24 @@ class BrowserInfoIos extends BrowserInfoBase
 		$this->kind = $matches[1];
 		preg_match('/OS (.*?) like/', $server['HTTP_USER_AGENT'], $matches);
 		$this->os_version = trim(str_replace('_', '.', $matches[1]));
+	}
+}
+
+class BrowserInfoDocomo extends BrowserInfoBase
+{
+	public function extractKindVersion($server){
+	}
+}
+
+class BrowserInfoAu extends BrowserInfoBase
+{
+	public function extractKindVersion($server){
+	}
+}
+
+class BrowserInfoSoftbank extends BrowserInfoBase
+{
+	public function extractKindVersion($server){
 	}
 }
 
