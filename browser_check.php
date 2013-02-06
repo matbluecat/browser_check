@@ -4,41 +4,45 @@
  * USER AGENTから機種情報とかOSのバージョンをとってくる
  */
 
-class BrowserCheck
+class BrowserInfoFactory
 {
-	public $os = '';
-	public $os_version = '';
-	public $kind = '';
-
-	private static $_os_class_list = array(
-		'Android'	=> 'BrowserInfoAndroid',
-		'iPhone'	=> 'BrowserInfoIos',
-		'iPad'		=> 'BrowserInfoIos',
-		'iPod'		=> 'BrowserInfoIos',
-	);
 
 	public static function getInfo($server=null){
 		$server = (is_array($server)) ? $server : $_SERVER;
-		if($server['HTTP_USER_AGENT']!=''){
-			$class_name = false;
-			foreach(self::$_os_class_list as $os => $name){
-				if(strstr($server['HTTP_USER_AGENT'], $os)){
-					$class_name = $name;
-					break;
+		$_class_list = array(
+			'BrowserInfoDocomo',
+			'BrowserInfoAu',
+			'BrowserInfoSoftbank',
+			'BrowserInfoAndroid',
+			'BrowserInfoIos',
+		);
+		if(self::isMobile($server)){
+			foreach($_class_list as $_class_name){
+				if($_class_name::is($server)){
+					return new $_class_name($server);
 				}
 			}
-			if($class_name!==false){
-				return new $class_name($server);
-			}
 		}
-		return false;
+		
 	}
+
+	public static function isMobile($server){
+		return true;
+	}
+
 }
 
-class BrowserInfoBase
+abstract class BrowserInfoBase
 {
+	public $os = '';
+	public $os_version = '';
+	public $carrier = '';
+	public $kind = '';
+
+	protected $server = null;
 	public function __construct($server=null){
 		if(is_array($server)){
+			$this->server = $server;
 			$this->extractKindVersion($server);
 		}
 	}
@@ -47,6 +51,11 @@ class BrowserInfoBase
 class BrowserInfoAndroid extends BrowserInfoBase
 {
 	public $os = 'Android';
+	public static function is($server=null){
+		if(strpos($server['HTTP_USER_AGENT'], 'Android')!==false){
+			return true;
+		}
+	}
 	public function extractKindVersion($server){
 		if(strstr($server['HTTP_USER_AGENT'], 'Opera Mini')){
 			// Opera Mini
@@ -84,6 +93,11 @@ class BrowserInfoAndroid extends BrowserInfoBase
 class BrowserInfoIos extends BrowserInfoBase
 {
 	public $os = 'iOS';
+	public static function is($server=null){
+		if(strpos($server['HTTP_USER_AGENT'], 'iPhone')!==false || strpos($server['HTTP_USER_AGENT'], 'iPad')!==false || strpos($server['HTTP_USER_AGENT'], 'iPod')!==false){
+			return true;
+		}
+	}
 	public function extractKindVersion($server){
 		preg_match('/\((.*?);/', $server['HTTP_USER_AGENT'], $matches);
 		$this->kind = $matches[1];
@@ -94,18 +108,36 @@ class BrowserInfoIos extends BrowserInfoBase
 
 class BrowserInfoDocomo extends BrowserInfoBase
 {
+	public $os = 'docomo';
+	public static function is($server=null){
+		if(strpos($server['HTTP_USER_AGENT'], 'DoCoMo')!==false){
+			return true;
+		}
+	}
 	public function extractKindVersion($server){
 	}
 }
 
 class BrowserInfoAu extends BrowserInfoBase
 {
+	public $os = 'au';
+	public static function is($server=null){
+		if(strpos($server['HTTP_USER_AGENT'], 'KDDI-')!==false || strpos($server['HTTP_USER_AGENT'], 'UP.Browser')!==false){
+			return true;
+		}
+	}
 	public function extractKindVersion($server){
 	}
 }
 
 class BrowserInfoSoftbank extends BrowserInfoBase
 {
+	public $os = 'SoftBank';
+	public static function is($server=null){
+		if(strpos($server['HTTP_USER_AGENT'], 'J-PHONE')!==false || strpos($server['HTTP_USER_AGENT'], 'Vodafone')!==false || strpos($server['HTTP_USER_AGENT'], 'MOT-')!==false || strpos($server['HTTP_USER_AGENT'], 'SoftBank')!==false){
+			return true;
+		}
+	}
 	public function extractKindVersion($server){
 	}
 }

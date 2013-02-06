@@ -122,10 +122,8 @@ $user_agent_list = array(
 	),
 );
 
-$bc = new BrowserCheck();
-
 foreach($user_agent_list as $key => $val){
-	$bi = BrowserCheck::getInfo($val);
+	$bi = BrowserInfoFactory::getInfo($val);
 	var_dump(
 	$bi
 	);
